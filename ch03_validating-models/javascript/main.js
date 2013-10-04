@@ -27,7 +27,6 @@ var Person = Backbone.Model.extend({
 	}
 });
 
-// Attributes are read with the .get(attr) function
 var john = new Person();
 
 // Validation is only applied if specified
