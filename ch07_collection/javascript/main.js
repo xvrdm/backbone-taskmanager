@@ -68,6 +68,8 @@ var a_smurf_collection = new PeopleCollection([
 console.log("a_smurf_collection:")
 console.log(a_smurf_collection.toJSON());
 
-// Individual smurf can be harvested from the collection
+// Individual smurf can be given name later
 var papa_smurf = a_smurf_collection.at(0);
+
+// which might make it easier to update their value
 papa_smurf.set('age',45);
