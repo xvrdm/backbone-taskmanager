@@ -1,4 +1,4 @@
-// CUSTOM EVENTS
+// DESTROY TASK 
 
 (function() {
 
@@ -18,14 +18,12 @@
 	};
 
 	App.Models.Task = Backbone.Model.extend({
-		// console log the error if any
 		initialize: function() {
 			this.on('invalid',function(model, error) {
 				console.log(error);
 			});
 		},
 
-		// verify that we do not enter empty/space title
 		validate: function(attrs) {
 			if ( ! $.trim(attrs.title) ) {
 				return 'A task requires a valid title.';
@@ -56,16 +54,17 @@
 
 		template: App.Helpers.template('taskTemplate'),
 
-		// To make sure the view update when some events happen
-		// we can make it listen at all time to change 
 		initialize: function() {
-			// The underscore method "on" can be used for monitoring
 			this.model.on('change', this.render, this);
+			// This listener triggers when the model is destroyed
+			// and remove it from the view
+			this.model.on('destroy', this.remove, this);
 		},
 
 		events: {
 			'click span': 'clickSpan',
-			'click .edit': 'editTask'
+			'click .edit': 'editTask',
+			'click .delete': 'delete'
 		},
 
 		clickSpan: function() {
@@ -74,13 +73,19 @@
 
 		editTask: function() {
 			var editedTask = prompt('Change the text:', this.model.get('title'));
-			//if ( ! editedTask ) return;
+			if ( ! editedTask ) return;
 			this.model.set('title', editedTask, {validate:true});
+		},
+
+		// This method remove the model from the collection and proves it
+		// by console logging the resulting trimmed collection
+		delete: function() {
+			this.model.destroy();
+			console.log(tasksList);
 		},
 
 		render: function() {
 			this.$el.html(this.template(this.model.toJSON()));
-
 			return this;
 		}
 	});

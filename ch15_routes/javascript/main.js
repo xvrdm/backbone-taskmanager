@@ -1,4 +1,4 @@
-// CUSTOM EVENTS
+// DESTROY TASK 
 
 (function() {
 
@@ -18,14 +18,13 @@
 	};
 
 	App.Models.Task = Backbone.Model.extend({
-		// console log the error if any
+
 		initialize: function() {
 			this.on('invalid',function(model, error) {
 				console.log(error);
 			});
 		},
 
-		// verify that we do not enter empty/space title
 		validate: function(attrs) {
 			if ( ! $.trim(attrs.title) ) {
 				return 'A task requires a valid title.';
@@ -39,6 +38,10 @@
 
 	App.Views.TasksList = Backbone.View.extend({
 		tagName: 'ul',
+
+		initialize: function() {
+			this.collection.on('add', this.addTaskViewToListView, this);
+		},
 
 		render: function() {
 			this.collection.each(this.addTaskViewToListView, this);
@@ -56,16 +59,15 @@
 
 		template: App.Helpers.template('taskTemplate'),
 
-		// To make sure the view update when some events happen
-		// we can make it listen at all time to change 
 		initialize: function() {
-			// The underscore method "on" can be used for monitoring
 			this.model.on('change', this.render, this);
+			this.model.on('destroy', this.remove, this);
 		},
 
 		events: {
 			'click span': 'clickSpan',
-			'click .edit': 'editTask'
+			'click .edit': 'editTask',
+			'click .delete': 'delete'
 		},
 
 		clickSpan: function() {
@@ -74,14 +76,46 @@
 
 		editTask: function() {
 			var editedTask = prompt('Change the text:', this.model.get('title'));
-			//if ( ! editedTask ) return;
+			if ( ! editedTask ) return;
 			this.model.set('title', editedTask, {validate:true});
+		},
+
+		delete: function() {
+			this.model.destroy();
+			console.log(tasksList);
 		},
 
 		render: function() {
 			this.$el.html(this.template(this.model.toJSON()));
-
 			return this;
+		}
+	});
+
+	App.Views.AddTask = Backbone.View.extend({
+		// We directly target an element on the page, rather
+		// than creating a wrapper
+		el: '#addTask',
+
+		events: {
+			'submit': 'submit'
+		},
+
+		initialize: function() {
+			// When targeting existing element, their content is 
+			// accessible from start
+			console.log(this.el.innerHTML);
+		},
+
+		submit: function(e) {
+			// We prevent the default submit process
+			e.preventDefault();
+			// Then we can do whatever method we want
+			// e.g console logging something
+			console.log("submitted");
+			// or e.g creating a new task
+			var newTaskTitle = $(e.currentTarget).find('input[type=text]').val();
+			var newTask = new App.Models.Task({ title: newTaskTitle, priority: 3	});
+			tasksList.add(newTask);
 		}
 	});
 
@@ -89,7 +123,7 @@
 // Application #########################################################
 //######################################################################
 
-	var tasksList = new App.Collections.TasksList([
+	window.tasksList = new App.Collections.TasksList([
 		{
 			title: 'Buy tools',
 			priority: 2
@@ -103,6 +137,10 @@
 			priority: 1
 		}
 	]);
+
+	// We create a new view for AddTask that will be linked to the 
+	// existing collection
+	var addTaskView = new App.Views.AddTask( { collection: tasksList } );
 
 	var tasksListView = new App.Views.TasksList({ collection: tasksList });
 
