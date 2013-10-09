@@ -39,6 +39,8 @@
 	App.Views.TasksList = Backbone.View.extend({
 		tagName: 'ul',
 
+		// When a model is added to the collection (via the AddTask view)
+		// we just run method addTaskViewToListView
 		initialize: function() {
 			this.collection.on('add', this.addTaskViewToListView, this);
 		},

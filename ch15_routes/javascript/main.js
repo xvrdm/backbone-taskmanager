@@ -1,4 +1,4 @@
-// DESTROY TASK 
+// ROUTES
 
 (function() {
 
@@ -10,141 +10,43 @@
 		Models: {},
 		Collections: {},
 		Views: {},
-		Helpers: {}
+		Helpers: {},
+		Routers: {}
 	};
 
-	App.Helpers.template = function(id) {
-		return _.template( $('#' + id).html() );
-	};
-
-	App.Models.Task = Backbone.Model.extend({
-
-		initialize: function() {
-			this.on('invalid',function(model, error) {
-				console.log(error);
-			});
+	// Routers are extended from Backbone.Router
+	App.Routers.aRouter = Backbone.Router.extend({
+		// Routes are specified in the "routes" object
+		// Each keyword has to have a "#" before it in the URL
+		// They trigger method later defined
+		routes: {
+			'': 'index',
+			'show': 'show'
 		},
 
-		validate: function(attrs) {
-			if ( ! $.trim(attrs.title) ) {
-				return 'A task requires a valid title.';
-			}
+		// in case of www.blabla.com/index.html
+		// or www.blabla.com/index.html#
+		index: function() {
+			console.log( 'Hi there from the index page' );
+		},
+
+		// in case of www.blabla.com/index.html#show
+		show: function() {
+			console.log( 'Hi there from the show url' );
 		}
-	});
 
-	App.Collections.TasksList = Backbone.Collection.extend({
-		model: App.Models.Task
-	});
-
-	App.Views.TasksList = Backbone.View.extend({
-		tagName: 'ul',
-
-		initialize: function() {
-			this.collection.on('add', this.addTaskViewToListView, this);
-		},
-
-		render: function() {
-			this.collection.each(this.addTaskViewToListView, this);
-			return this;
-		},
-
-		addTaskViewToListView: function(task) {
-			var taskView = new App.Views.Task({ model: task });
-			this.$el.append( taskView.render().el );
-		}
-	});
-
-	App.Views.Task = Backbone.View.extend({
-		tagName: 'li',
-
-		template: App.Helpers.template('taskTemplate'),
-
-		initialize: function() {
-			this.model.on('change', this.render, this);
-			this.model.on('destroy', this.remove, this);
-		},
-
-		events: {
-			'click span': 'clickSpan',
-			'click .edit': 'editTask',
-			'click .delete': 'delete'
-		},
-
-		clickSpan: function() {
-			alert('you clicked the span!');
-		},
-
-		editTask: function() {
-			var editedTask = prompt('Change the text:', this.model.get('title'));
-			if ( ! editedTask ) return;
-			this.model.set('title', editedTask, {validate:true});
-		},
-
-		delete: function() {
-			this.model.destroy();
-			console.log(tasksList);
-		},
-
-		render: function() {
-			this.$el.html(this.template(this.model.toJSON()));
-			return this;
-		}
-	});
-
-	App.Views.AddTask = Backbone.View.extend({
-		// We directly target an element on the page, rather
-		// than creating a wrapper
-		el: '#addTask',
-
-		events: {
-			'submit': 'submit'
-		},
-
-		initialize: function() {
-			// When targeting existing element, their content is 
-			// accessible from start
-			console.log(this.el.innerHTML);
-		},
-
-		submit: function(e) {
-			// We prevent the default submit process
-			e.preventDefault();
-			// Then we can do whatever method we want
-			// e.g console logging something
-			console.log("submitted");
-			// or e.g creating a new task
-			var newTaskTitle = $(e.currentTarget).find('input[type=text]').val();
-			var newTask = new App.Models.Task({ title: newTaskTitle, priority: 3	});
-			tasksList.add(newTask);
-		}
 	});
 
 //######################################################################
 // Application #########################################################
 //######################################################################
 
-	window.tasksList = new App.Collections.TasksList([
-		{
-			title: 'Buy tools',
-			priority: 2
-		},
-		{
-			title: 'Buy milk',
-			priority: 3
-		},
-		{
-			title: 'Buy bread',
-			priority: 1
-		}
-	]);
+	// For a router to work, 
+	// 1. we need to create and instance of it
+	new App.Routers.aRouter();
+	// 2. And start the Backbone history
+	Backbone.history.start();
 
-	// We create a new view for AddTask that will be linked to the 
-	// existing collection
-	var addTaskView = new App.Views.AddTask( { collection: tasksList } );
-
-	var tasksListView = new App.Views.TasksList({ collection: tasksList });
-
-	$('.tasks').html( tasksListView.render().el );
 })();
 
 
